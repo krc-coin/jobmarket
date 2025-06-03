@@ -1,0 +1,3177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skysoft Job Market</title>
+    <script src="https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.0.1/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/simple-peer@9.11.1/index.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --border-radius: 5px;
+            --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 0;
+            box-shadow: var(--box-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .auth-buttons button {
+            background-color: white;
+            color: var(--primary-color);
+            border: none;
+            padding: 8px 15px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            margin-left: 10px;
+            font-weight: 600;
+        }
+
+        .auth-buttons button:hover {
+            background-color: var(--light-color);
+        }
+
+        nav {
+            background-color: var(--secondary-color);
+            padding: 10px 0;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+
+        .nav-links li {
+            margin-right: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .sidebar {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            box-shadow: var(--box-shadow);
+            height: fit-content;
+        }
+
+        .sidebar-section {
+            margin-bottom: 20px;
+        }
+
+        .sidebar-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .sidebar-list {
+            list-style: none;
+        }
+
+        .sidebar-list li {
+            margin-bottom: 8px;
+        }
+
+        .sidebar-list a {
+            color: #333;
+            text-decoration: none;
+        }
+
+        .sidebar-list a:hover {
+            color: var(--primary-color);
+        }
+
+        .content-area {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+        }
+
+        .section-title {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: var(--dark-color);
+        }
+
+        .job-card {
+            border: 1px solid #eee;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: transform 0.2s;
+        }
+
+        .job-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .job-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .job-employer {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .job-location, .job-deadline {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .job-description {
+            margin: 10px 0;
+        }
+
+        .job-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+        }
+
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .online-users {
+            margin-top: 20px;
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .user-card:hover {
+            background-color: #f9f9f9;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            object-fit: cover;
+        }
+
+        .user-info {
+            flex-grow: 1;
+        }
+
+        .user-name {
+            font-weight: 500;
+        }
+
+        .user-distance {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .chat-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .chat-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .chat-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .chat-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 15px;
+            border-top-left-radius: var(--border-radius);
+            border-top-right-radius: var(--border-radius);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-title {
+            font-weight: 500;
+        }
+
+        .close-chat {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .chat-messages {
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 15px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .received {
+            background-color: #f1f1f1;
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+
+        .sent {
+            background-color: var(--primary-color);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        .chat-input input {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            margin-right: 10px;
+        }
+
+        .send-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 0 15px;
+            cursor: pointer;
+        }
+
+        .admin-badge {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+
+        .job-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-open {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .status-closed {
+            background-color: #666;
+            color: white;
+        }
+
+        .application-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        .status-pending {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        .status-accepted {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .status-rejected {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .interview-room {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1001;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-container {
+            width: 90%;
+            max-width: 800px;
+            background-color: black;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .remote-video {
+            width: 100%;
+            height: auto;
+        }
+
+        .local-video {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 25%;
+            max-width: 200px;
+            border: 2px solid white;
+            border-radius: var(--border-radius);
+        }
+
+        .interview-controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .control-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .end-call {
+            background-color: var(--danger-color);
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="logo">Skysoft Job Market</div>
+            <div class="auth-buttons">
+                <button id="loginBtn">Login</button>
+                <button id="signupBtn">Sign Up</button>
+                <button id="profileBtn" style="display: none;">Profile</button>
+                <button id="logoutBtn" style="display: none;">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <nav>
+        <div class="container">
+            <ul class="nav-links">
+                <li><a href="#" class="active" id="homeLink">Home</a></li>
+                <li><a href="#" id="jobsLink">Jobs</a></li>
+                <li><a href="#" id="postJobLink">Post Job</a></li>
+                <li><a href="#" id="applicationsLink">My Applications</a></li>
+                <li><a href="#" id="messagesLink">Messages</a></li>
+                <li><a href="#" id="adminLink" style="display: none;">Admin</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Job Categories</h3>
+                    <ul class="sidebar-list" id="jobCategories">
+                        <!-- Filled by JavaScript -->
+                    </ul>
+                </div>
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Near You</h3>
+                    <div id="nearbyJobs">
+                        <!-- Filled by JavaScript -->
+                    </div>
+                </div>
+                <div class="sidebar-section online-users">
+                    <h3 class="sidebar-title">Online Now</h3>
+                    <div id="onlineUsersList">
+                        <!-- Filled by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <h2 class="section-title" id="contentTitle">Recent Job Listings</h2>
+                <div id="contentArea">
+                    <!-- Content changes based on navigation -->
+                    <div id="homeContent">
+                        <div id="jobListings">
+                            <!-- Job listings will be loaded here -->
+                        </div>
+                    </div>
+                    <div id="jobsContent" style="display: none;">
+                        <div class="form-group">
+                            <input type="text" id="jobSearch" class="form-control" placeholder="Search jobs...">
+                        </div>
+                        <div id="filteredJobListings">
+                            <!-- Filtered job listings will be loaded here -->
+                        </div>
+                    </div>
+                    <div id="postJobContent" style="display: none;">
+                        <form id="postJobForm">
+                            <div class="form-group">
+                                <label for="jobTitle" class="form-label">Job Title</label>
+                                <input type="text" id="jobTitle" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="jobCategory" class="form-label">Category</label>
+                                <select id="jobCategory" class="form-control" required>
+                                    <!-- Categories will be loaded from the blockchain -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="positions" class="form-label">Number of Positions</label>
+                                <input type="number" id="positions" class="form-control" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="deadline" class="form-label">Application Deadline</label>
+                                <input type="datetime-local" id="deadline" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="jobDescription" class="form-label">Job Description</label>
+                                <textarea id="jobDescription" class="form-control" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="jobLocation" class="form-label">Location</label>
+                                <input type="text" id="jobLocation" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="salaryRange" class="form-label">Salary Range</label>
+                                <input type="text" id="salaryRange" class="form-control" placeholder="e.g., 500,000 - 1,000,000 UGX or Negotiable">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Options</label>
+                                <div>
+                                    <input type="checkbox" id="allowComments" checked>
+                                    <label for="allowComments">Allow Comments</label>
+                                </div>
+                                <div>
+                                    <input type="checkbox" id="allowPrivateMessages" checked>
+                                    <label for="allowPrivateMessages">Allow Private Messages</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="jobImage" class="form-label">Job Image (Optional)</label>
+                                <input type="file" id="jobImage" class="form-control" accept="image/*">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Post Job</button>
+                        </form>
+                    </div>
+                    <div id="applicationsContent" style="display: none;">
+                        <h3>Your Applications</h3>
+                        <div id="userApplications">
+                            <!-- User applications will be loaded here -->
+                        </div>
+                    </div>
+                    <div id="messagesContent" style="display: none;">
+                        <h3>Your Conversations</h3>
+                        <div id="conversationsList">
+                            <!-- Conversations will be loaded here -->
+                        </div>
+                    </div>
+                    <div id="adminContent" style="display: none;">
+                        <h3>Admin Dashboard</h3>
+                        <div class="admin-section">
+                            <h4>System Messages</h4>
+                            <form id="broadcastForm">
+                                <div class="form-group">
+                                    <label for="messageType" class="form-label">Message Type</label>
+                                    <select id="messageType" class="form-control">
+                                        <option value="info">Information</option>
+                                        <option value="warning">Warning</option>
+                                        <option value="alert">Alert</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="broadcastMessage" class="form-label">Message</label>
+                                    <textarea id="broadcastMessage" class="form-control" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Broadcast</button>
+                            </form>
+                        </div>
+                        <div class="admin-section">
+                            <h4>Manage Users</h4>
+                            <div id="usersList">
+                                <!-- Users list will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="admin-section">
+                            <h4>Manage Job Categories</h4>
+                            <form id="addCategoryForm">
+                                <div class="form-group">
+                                    <input type="text" id="newCategory" class="form-control" placeholder="New category name" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Add Category</button>
+                            </form>
+                            <div id="categoriesList">
+                                <!-- Categories list will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="admin-section">
+                            <h4>System Settings</h4>
+                            <form id="systemSettingsForm">
+                                <div class="form-group">
+                                    <label for="appTitle" class="form-label">App Title</label>
+                                    <input type="text" id="appTitle" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="systemName" class="form-label">System Post Name</label>
+                                    <input type="text" id="systemName" class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save Settings</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Login</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail" class="form-label">Email</label>
+                    <input type="email" id="loginEmail" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword" class="form-label">Password</label>
+                    <input type="password" id="loginPassword" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </div>
+                <div class="form-group">
+                    <p>Or login with:</p>
+                    <button type="button" class="btn" id="googleLogin" style="background-color: #DB4437; color: white;">Google</button>
+                    <button type="button" class="btn" id="facebookLogin" style="background-color: #4267B2; color: white;">Facebook</button>
+                    <button type="button" class="btn" id="whatsappLogin" style="background-color: #25D366; color: white;">WhatsApp</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="signupModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Sign Up</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="signupForm">
+                <div class="form-group">
+                    <label for="signupName" class="form-label">Full Name</label>
+                    <input type="text" id="signupName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupEmail" class="form-label">Email</label>
+                    <input type="email" id="signupEmail" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupPhone" class="form-label">Phone Number</label>
+                    <input type="tel" id="signupPhone" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword" class="form-label">Password</label>
+                    <input type="password" id="signupPassword" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupConfirmPassword" class="form-label">Confirm Password</label>
+                    <input type="password" id="signupConfirmPassword" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupProfession" class="form-label">Profession</label>
+                    <input type="text" id="signupProfession" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupJobTitle" class="form-label">Job Title</label>
+                    <input type="text" id="signupJobTitle" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="signupWorkplace" class="form-label">Place of Work</label>
+                    <input type="text" id="signupWorkplace" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="signupPhoto" class="form-label">Profile Picture</label>
+                    <input type="file" id="signupPhoto" class="form-control" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Sign Up</button>
+                </div>
+                <div class="form-group">
+                    <p>Or sign up with:</p>
+                    <button type="button" class="btn" id="googleSignup" style="background-color: #DB4437; color: white;">Google</button>
+                    <button type="button" class="btn" id="facebookSignup" style="background-color: #4267B2; color: white;">Facebook</button>
+                    <button type="button" class="btn" id="whatsappSignup" style="background-color: #25D366; color: white;">WhatsApp</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="applyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Apply for Job</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="applyForm">
+                <input type="hidden" id="applyJobId">
+                <div class="form-group">
+                    <label for="applicantName" class="form-label">Full Name</label>
+                    <input type="text" id="applicantName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="applicantEmail" class="form-label">Email</label>
+                    <input type="email" id="applicantEmail" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="applicantPhone" class="form-label">Phone Number</label>
+                    <input type="tel" id="applicantPhone" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="applicantAge" class="form-label">Age</label>
+                    <input type="number" id="applicantAge" class="form-control" min="18" required>
+                </div>
+                <div class="form-group">
+                    <label for="applicantGender" class="form-label">Gender</label>
+                    <select id="applicantGender" class="form-control" required>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                        <option value="prefer-not-to-say">Prefer not to say</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="applicantLocation" class="form-label">Current Location</label>
+                    <input type="text" id="applicantLocation" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="applicantExperience" class="form-label">Years of Experience</label>
+                    <input type="number" id="applicantExperience" class="form-control" min="0" step="0.5" required>
+                </div>
+                <div class="form-group">
+                    <label for="applicantQualifications" class="form-label">Qualifications</label>
+                    <textarea id="applicantQualifications" class="form-control" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="applicantPhoto" class="form-label">Portrait Photo</label>
+                    <input type="file" id="applicantPhoto" class="form-control" accept="image/*" required>
+                </div>
+                <div class="form-group">
+                    <label for="applicantCV" class="form-label">CV/Resume</label>
+                    <input type="file" id="applicantCV" class="form-control" accept=".pdf,.doc,.docx" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Submit Application</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="jobDetailsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="jobDetailsTitle">Job Details</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div id="jobDetailsContent">
+                <!-- Job details will be loaded here -->
+            </div>
+            <div id="jobCommentsSection" style="margin-top: 20px;">
+                <h4>Comments</h4>
+                <div id="jobComments">
+                    <!-- Comments will be loaded here -->
+                </div>
+                <form id="addCommentForm" style="margin-top: 10px;">
+                    <input type="hidden" id="commentJobId">
+                    <div class="form-group">
+                        <textarea id="commentText" class="form-control" placeholder="Add a comment..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Post Comment</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="profileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Your Profile</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div id="profileContent">
+                <!-- Profile content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="applicationDetailsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Application Details</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div id="applicationDetailsContent">
+                <!-- Application details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-container" id="chatContainer">
+        <div class="chat-header">
+            <div class="chat-title" id="chatTitle">Chat</div>
+            <button class="close-chat">&times;</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- Chat messages will appear here -->
+        </div>
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Type your message...">
+            <button class="send-btn" id="sendMessageBtn">Send</button>
+        </div>
+    </div>
+
+    <div class="interview-room" id="interviewRoom">
+        <div class="video-container">
+            <video id="remoteVideo" class="remote-video" autoplay playsinline></video>
+            <video id="localVideo" class="local-video" autoplay playsinline muted></video>
+        </div>
+        <div class="interview-controls">
+            <button class="control-btn" id="muteBtn">🔇</button>
+            <button class="control-btn" id="videoBtn">📷</button>
+            <button class="control-btn end-call" id="endCallBtn">📞</button>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let isSuperAdmin = false;
+        let peer = null;
+        let torrentClient = null;
+        let blockchain = [];
+        let jobs = [];
+        let applications = [];
+        let users = [];
+        let categories = [];
+        let messages = [];
+        let onlineUsers = [];
+        let currentChatPeer = null;
+        let peerConnections = {};
+        let dataChannel = null;
+        let localStream = null;
+        let currentInterviewData = null;
+
+        // DOM elements
+        const loginBtn = document.getElementById('loginBtn');
+        const signupBtn = document.getElementById('signupBtn');
+        const profileBtn = document.getElementById('profileBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const loginModal = document.getElementById('loginModal');
+        const signupModal = document.getElementById('signupModal');
+        const applyModal = document.getElementById('applyModal');
+        const jobDetailsModal = document.getElementById('jobDetailsModal');
+        const profileModal = document.getElementById('profileModal');
+        const applicationDetailsModal = document.getElementById('applicationDetailsModal');
+        const chatContainer = document.getElementById('chatContainer');
+        const interviewRoom = document.getElementById('interviewRoom');
+        const remoteVideo = document.getElementById('remoteVideo');
+        const localVideo = document.getElementById('localVideo');
+        const muteBtn = document.getElementById('muteBtn');
+        const videoBtn = document.getElementById('videoBtn');
+        const endCallBtn = document.getElementById('endCallBtn');
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeDatabase();
+            initializePeerJS();
+            initializeWebTorrent();
+            loadBlockchain();
+            setupEventListeners();
+            checkAuthState();
+            detectLocation();
+        });
+
+        // Initialize IndexedDB
+        function initializeDatabase() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('SkysoftJobMarketDB', 1);
+
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+
+                    // Create object stores
+                    if (!db.objectStoreNames.contains('blockchain')) {
+                        db.createObjectStore('blockchain', { keyPath: 'index' });
+                    }
+                    if (!db.objectStoreNames.contains('jobs')) {
+                        db.createObjectStore('jobs', { keyPath: 'id' });
+                    }
+                    if (!db.objectStoreNames.contains('applications')) {
+                        db.createObjectStore('applications', { keyPath: 'id' });
+                    }
+                    if (!db.objectStoreNames.contains('users')) {
+                        db.createObjectStore('users', { keyPath: 'id' });
+                    }
+                    if (!db.objectStoreNames.contains('categories')) {
+                        db.createObjectStore('categories', { keyPath: 'id' });
+                    }
+                    if (!db.objectStoreNames.contains('messages')) {
+                        db.createObjectStore('messages', { keyPath: 'id' });
+                    }
+                    if (!db.objectStoreNames.contains('settings')) {
+                        db.createObjectStore('settings', { keyPath: 'key' });
+                    }
+                };
+
+                request.onsuccess = (event) => {
+                    const db = event.target.result;
+                    console.log('Database initialized successfully');
+                    resolve(db);
+                };
+
+                request.onerror = (event) => {
+                    console.error('Database initialization failed:', event.target.error);
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        // Initialize PeerJS
+        function initializePeerJS() {
+            peer = new Peer({
+                config: {
+                    'iceServers': [
+                        { url: 'stun:stun.l.google.com:19302' },
+                        { url: 'stun:global.stun.twilio.com:3478?transport=udp' }
+                    ]
+                }
+            });
+
+            peer.on('open', (id) => {
+                console.log('PeerJS connected with ID:', id);
+                if (currentUser) {
+                    currentUser.peerId = id;
+                    updateUser(currentUser);
+                }
+            });
+
+            peer.on('connection', (conn) => {
+                console.log('Incoming connection from:', conn.peer);
+                conn.on('data', (data) => handleIncomingData(conn, data));
+                conn.on('close', () => {
+                    console.log('Connection closed:', conn.peer);
+                    delete peerConnections[conn.peer];
+                });
+                peerConnections[conn.peer] = conn;
+            });
+
+            peer.on('error', (err) => {
+                console.error('PeerJS error:', err);
+            });
+        }
+
+        // Initialize WebTorrent
+        function initializeWebTorrent() {
+            torrentClient = new WebTorrent();
+
+            torrentClient.on('error', (err) => {
+                console.error('WebTorrent error:', err);
+            });
+        }
+
+        // Load blockchain data
+        function loadBlockchain() {
+            const transaction = db.transaction(['blockchain'], 'readonly');
+            const store = transaction.objectStore('blockchain');
+            const request = store.getAll();
+
+            request.onsuccess = (event) => {
+                blockchain = event.target.result || [];
+                if (blockchain.length === 0) {
+                    // Initialize with genesis block if empty
+                    const genesisBlock = createBlock(null, { type: 'genesis', data: 'Skysoft Job Market Genesis Block' });
+                    addBlockToDB(genesisBlock);
+                } else {
+                    // Verify blockchain integrity
+                    if (!verifyBlockchain()) {
+                        console.error('Blockchain verification failed!');
+                        alert('Warning: Blockchain data has been tampered with!');
+                    }
+                }
+                loadAllData();
+            };
+
+            request.onerror = (event) => {
+                console.error('Error loading blockchain:', event.target.error);
+            };
+        }
+
+        // Load all data from the blockchain
+        function loadAllData() {
+            loadJobs();
+            loadUsers();
+            loadCategories();
+            loadApplications();
+            loadMessages();
+            loadSettings();
+        }
+
+        // Load jobs from database
+        function loadJobs() {
+            const transaction = db.transaction(['jobs'], 'readonly');
+            const store = transaction.objectStore('jobs');
+            const request = store.getAll();
+
+            request.onsuccess = (event) => {
+                jobs = event.target.result || [];
+                displayJobs(jobs);
+            };
+
+            request.onerror = (event) => {
+                console.error('Error loading jobs:', event.target.error);
+            };
+        }
+
+        // Load users from database
+        function loadUsers() {
+            const transaction = db.transaction(['users'], 'readonly');
+            const store = transaction.objectStore('users');
+            const request = store.getAll();
+
+            request.onsuccess = (event) => {
+                users = event.target.result || [];
+                if (users.length > 0 && !users.some(u => u.isSuperAdmin)) {
+                    // First user becomes super admin
+                    users[0].isSuperAdmin = true;
+                    updateUser(users[0]);
+                }
+                updateOnlineUsersList();
+            };
+
+            request.onerror = (event) => {
+                console.error('Error loading users:', event.target.error);
+            };
+        }
+
+        // Load categories from database
+        function loadCategories() {
+            const transaction = db.transaction(['categories'], 'readonly');
+            const store = transaction.objectStore('categories');
+            const request = store.getAll();
+
+            request.onsuccess = (event) => {
+                categories = event.target.result || [];
+                if (categories.length === 0) {
+                    // Initialize with default categories
+                    const defaultCategories = [
+                        { id: generateId(), name: 'Technology', createdAt: new Date().toISOString() },
+                        { id: generateId(), name: 'Healthcare', createdAt: new Date().toISOString() },
+                        { id: generateId(), name: 'Education', createdAt: new Date().toISOString() },
+                        { id: generateId(), name: 'Finance', createdAt: new Date().toISOString() },
+                        { id: generateId(), name: 'Construction', createdAt: new Date().toISOString() },
+                        { id: generateId(), name: 'Hospitality', createdAt: new Date().toISOString() },
+                        { id: generateId(), name: 'Retail', createdAt: new Date().toISOString() },
+                        { id: generateId(), name: 'Manufacturing', createdAt: new Date().toISOString() },
+                        { id: generateId(), name: 'Transportation', createdAt: new Date().toISOString() },
+                        { id: generateId(), name: 'Other', createdAt: new Date().toISOString() }
+                    ];
+                    defaultCategories.forEach(cat => addCategoryToDB(cat));
+                }
+                updateCategoryLists();
+            };
+
+            request.onerror = (event) => {
+                console.error('Error loading categories:', event.target.error);
+            };
+        }
+
+        // Load applications from database
+        function loadApplications() {
+            const transaction = db.transaction(['applications'], 'readonly');
+            const store = transaction.objectStore('applications');
+            const request = store.getAll();
+
+            request.onsuccess = (event) => {
+                applications = event.target.result || [];
+                if (currentUser) {
+                    displayUserApplications();
+                }
+            };
+
+            request.onerror = (event) => {
+                console.error('Error loading applications:', event.target.error);
+            };
+        }
+
+        // Load messages from database
+        function loadMessages() {
+            const transaction = db.transaction(['messages'], 'readonly');
+            const store = transaction.objectStore('messages');
+            const request = store.getAll();
+
+            request.onsuccess = (event) => {
+                messages = event.target.result || [];
+                if (currentUser) {
+                    displayConversations();
+                }
+            };
+
+            request.onerror = (event) => {
+                console.error('Error loading messages:', event.target.error);
+            };
+        }
+
+        // Load settings from database
+        function loadSettings() {
+            const transaction = db.transaction(['settings'], 'readonly');
+            const store = transaction.objectStore('settings');
+            const request = store.getAll();
+
+            request.onsuccess = (event) => {
+                const settings = event.target.result || [];
+                const appTitleSetting = settings.find(s => s.key === 'appTitle');
+                const systemNameSetting = settings.find(s => s.key === 'systemName');
+
+                if (appTitleSetting) {
+                    document.querySelector('.logo').textContent = appTitleSetting.value;
+                }
+                if (systemNameSetting) {
+                    // Used when system posts messages
+                }
+
+                if (isSuperAdmin) {
+                    document.getElementById('appTitle').value = appTitleSetting?.value || 'Skysoft Job Market';
+                    document.getElementById('systemName').value = systemNameSetting?.value || 'Jobs';
+                }
+            };
+
+            request.onerror = (event) => {
+                console.error('Error loading settings:', event.target.error);
+            };
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Auth buttons
+            loginBtn.addEventListener('click', () => loginModal.style.display = 'flex');
+            signupBtn.addEventListener('click', () => signupModal.style.display = 'flex');
+            profileBtn.addEventListener('click', showProfileModal);
+            logoutBtn.addEventListener('click', logout);
+
+            // Modal close buttons
+            document.querySelectorAll('.close-modal').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    btn.closest('.modal').style.display = 'none';
+                });
+            });
+
+            // Close chat
+            document.querySelector('.close-chat').addEventListener('click', () => {
+                chatContainer.style.display = 'none';
+            });
+
+            // Navigation links
+            document.getElementById('homeLink').addEventListener('click', (e) => {
+                e.preventDefault();
+                showContent('home');
+            });
+            document.getElementById('jobsLink').addEventListener('click', (e) => {
+                e.preventDefault();
+                showContent('jobs');
+            });
+            document.getElementById('postJobLink').addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentUser) {
+                    showContent('postJob');
+                } else {
+                    alert('Please login to post a job');
+                    loginModal.style.display = 'flex';
+                }
+            });
+            document.getElementById('applicationsLink').addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentUser) {
+                    showContent('applications');
+                } else {
+                    alert('Please login to view your applications');
+                    loginModal.style.display = 'flex';
+                }
+            });
+            document.getElementById('messagesLink').addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentUser) {
+                    showContent('messages');
+                } else {
+                    alert('Please login to view your messages');
+                    loginModal.style.display = 'flex';
+                }
+            });
+            document.getElementById('adminLink').addEventListener('click', (e) => {
+                e.preventDefault();
+                showContent('admin');
+            });
+
+            // Forms
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            document.getElementById('signupForm').addEventListener('submit', handleSignup);
+            document.getElementById('postJobForm').addEventListener('submit', handlePostJob);
+            document.getElementById('applyForm').addEventListener('submit', handleApplication);
+            document.getElementById('addCommentForm').addEventListener('submit', handleAddComment);
+            document.getElementById('broadcastForm').addEventListener('submit', handleBroadcast);
+            document.getElementById('addCategoryForm').addEventListener('submit', handleAddCategory);
+            document.getElementById('systemSettingsForm').addEventListener('submit', handleSystemSettings);
+
+            // Job search
+            document.getElementById('jobSearch').addEventListener('input', handleJobSearch);
+
+            // Chat
+            document.getElementById('sendMessageBtn').addEventListener('click', sendChatMessage);
+            document.getElementById('chatInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendChatMessage();
+            });
+
+            // Interview controls
+            muteBtn.addEventListener('click', toggleMute);
+            videoBtn.addEventListener('click', toggleVideo);
+            endCallBtn.addEventListener('click', endInterview);
+
+            // Close modals when clicking outside
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // Show content based on navigation
+        function showContent(content) {
+            document.querySelectorAll('#contentArea > div').forEach(div => {
+                div.style.display = 'none';
+            });
+            document.getElementById(`${content}Content`).style.display = 'block';
+            document.getElementById('contentTitle').textContent = 
+                content === 'home' ? 'Recent Job Listings' :
+                content === 'jobs' ? 'All Jobs' :
+                content === 'postJob' ? 'Post a Job' :
+                content === 'applications' ? 'Your Applications' :
+                content === 'messages' ? 'Your Conversations' :
+                content === 'admin' ? 'Admin Dashboard' : '';
+            
+            // Update active nav link
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.classList.remove('active');
+            });
+            document.getElementById(`${content}Link`).classList.add('active');
+        }
+
+        // Display jobs in the UI
+        function displayJobs(jobsToDisplay) {
+            const jobsContainer = document.getElementById('jobListings');
+            const filteredJobsContainer = document.getElementById('filteredJobListings');
+            
+            const now = new Date();
+            const activeJobs = jobsToDisplay.filter(job => new Date(job.deadline) > now);
+            
+            const displayJob = (job, container) => {
+                const jobElement = document.createElement('div');
+                jobElement.className = 'job-card';
+                jobElement.innerHTML = `
+                    <h3 class="job-title">${job.title} <span class="job-status status-${new Date(job.deadline) > now ? 'open' : 'closed'}">${new Date(job.deadline) > now ? 'Open' : 'Closed'}</span></h3>
+                    <p class="job-employer">${job.employerName || 'Anonymous'}</p>
+                    <p class="job-location">📍 ${job.location}</p>
+                    <p class="job-deadline">⏰ Deadline: ${formatDate(job.deadline)}</p>
+                    <div class="job-description">${job.description}</div>
+                    <div class="job-actions">
+                        <button class="btn btn-primary view-job" data-id="${job.id}">View Details</button>
+                        ${new Date(job.deadline) > now ? `<button class="btn btn-success apply-job" data-id="${job.id}">Apply</button>` : ''}
+                    </div>
+                `;
+                container.appendChild(jobElement);
+            };
+            
+            jobsContainer.innerHTML = '';
+            filteredJobsContainer.innerHTML = '';
+            
+            activeJobs.forEach(job => {
+                displayJob(job, jobsContainer);
+                displayJob(job, filteredJobsContainer);
+            });
+            
+            // Add event listeners to the buttons
+            document.querySelectorAll('.view-job').forEach(btn => {
+                btn.addEventListener('click', () => showJobDetails(btn.dataset.id));
+            });
+            
+            document.querySelectorAll('.apply-job').forEach(btn => {
+                btn.addEventListener('click', () => showApplyModal(btn.dataset.id));
+            });
+        }
+
+        // Display user applications
+        function displayUserApplications() {
+            const container = document.getElementById('userApplications');
+            container.innerHTML = '';
+            
+            const userApps = applications.filter(app => app.applicantId === currentUser.id);
+            
+            if (userApps.length === 0) {
+                container.innerHTML = '<p>You have no applications yet.</p>';
+                return;
+            }
+            
+            userApps.forEach(app => {
+                const job = jobs.find(j => j.id === app.jobId);
+                if (!job) return;
+                
+                const appElement = document.createElement('div');
+                appElement.className = 'job-card';
+                appElement.innerHTML = `
+                    <h3 class="job-title">${job.title}</h3>
+                    <p class="job-employer">${job.employerName || 'Anonymous'}</p>
+                    <p class="job-location">📍 ${job.location}</p>
+                    <p class="job-deadline">⏰ Deadline: ${formatDate(job.deadline)}</p>
+                    <div class="job-actions">
+                        <button class="btn btn-primary view-application" data-id="${app.id}">View Application</button>
+                        <span class="application-status status-${app.status || 'pending'}">${app.status ? app.status.charAt(0).toUpperCase() + app.status.slice(1) : 'Pending'}</span>
+                        ${app.interviewDate ? `<p>Interview: ${formatDate(app.interviewDate)} ${app.interviewLocation ? `at ${app.interviewLocation}` : 'online'}</p>` : ''}
+                    </div>
+                `;
+                container.appendChild(appElement);
+            });
+            
+            document.querySelectorAll('.view-application').forEach(btn => {
+                btn.addEventListener('click', () => showApplicationDetails(btn.dataset.id));
+            });
+        }
+
+        // Display conversations
+        function displayConversations() {
+            const container = document.getElementById('conversationsList');
+            container.innerHTML = '';
+            
+            // Get unique peer IDs from messages
+            const peerIds = [...new Set(messages
+                .filter(m => m.senderId === currentUser.id || m.receiverId === currentUser.id)
+                .map(m => m.senderId === currentUser.id ? m.receiverId : m.senderId))];
+            
+            if (peerIds.length === 0) {
+                container.innerHTML = '<p>You have no conversations yet.</p>';
+                return;
+            }
+            
+            peerIds.forEach(peerId => {
+                const peer = users.find(u => u.id === peerId);
+                if (!peer) return;
+                
+                const lastMessage = messages
+                    .filter(m => (m.senderId === currentUser.id && m.receiverId === peerId) || 
+                                (m.senderId === peerId && m.receiverId === currentUser.id))
+                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+                
+                const convoElement = document.createElement('div');
+                convoElement.className = 'user-card';
+                convoElement.innerHTML = `
+                    <img src="${peer.photoUrl || 'https://via.placeholder.com/40'}" alt="${peer.name}" class="user-avatar">
+                    <div class="user-info">
+                        <div class="user-name">${peer.name}</div>
+                        <div class="last-message">${lastMessage?.text || ''}</div>
+                    </div>
+                    <button class="chat-btn start-chat" data-peerid="${peer.id}">💬</button>
+                `;
+                container.appendChild(convoElement);
+            });
+            
+            document.querySelectorAll('.start-chat').forEach(btn => {
+                btn.addEventListener('click', () => startChat(btn.dataset.peerid));
+            });
+        }
+
+        // Update online users list
+        function updateOnlineUsersList() {
+            const container = document.getElementById('onlineUsersList');
+            container.innerHTML = '';
+            
+            onlineUsers.forEach(user => {
+                if (user.id === currentUser?.id) return;
+                
+                const userElement = document.createElement('div');
+                userElement.className = 'user-card';
+                userElement.innerHTML = `
+                    <img src="${user.photoUrl || 'https://via.placeholder.com/40'}" alt="${user.name}" class="user-avatar">
+                    <div class="user-info">
+                        <div class="user-name">${user.name} ${user.isSuperAdmin ? '<span class="admin-badge">Admin</span>' : ''}</div>
+                        <div class="user-distance">${user.distance ? `${user.distance.toFixed(1)} km away` : 'Online'}</div>
+                    </div>
+                    <button class="chat-btn start-chat" data-peerid="${user.id}">💬</button>
+                    ${user.profession ? `<button class="chat-btn ask-job" data-peerid="${user.id}">💼</button>` : ''}
+                `;
+                container.appendChild(userElement);
+            });
+            
+            document.querySelectorAll('.start-chat').forEach(btn => {
+                btn.addEventListener('click', () => startChat(btn.dataset.peerid));
+            });
+            
+            document.querySelectorAll('.ask-job').forEach(btn => {
+                btn.addEventListener('click', () => askAboutJobOpportunities(btn.dataset.peerid));
+            });
+        }
+
+        // Update category lists in UI
+        function updateCategoryLists() {
+            const sidebarCategories = document.getElementById('jobCategories');
+            const postJobCategories = document.getElementById('jobCategory');
+            const adminCategories = document.getElementById('categoriesList');
+            
+            sidebarCategories.innerHTML = '';
+            postJobCategories.innerHTML = '';
+            
+            categories.forEach(cat => {
+                // Sidebar categories
+                const catItem = document.createElement('li');
+                catItem.innerHTML = `<a href="#" class="filter-category" data-category="${cat.name}">${cat.name}</a>`;
+                sidebarCategories.appendChild(catItem);
+                
+                // Post job categories
+                const option = document.createElement('option');
+                option.value = cat.name;
+                option.textContent = cat.name;
+                postJobCategories.appendChild(option);
+            });
+            
+            if (isSuperAdmin && adminCategories) {
+                adminCategories.innerHTML = '';
+                categories.forEach(cat => {
+                    const catItem = document.createElement('div');
+                    catItem.className = 'job-card';
+                    catItem.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>${cat.name}</span>
+                            <button class="btn btn-danger delete-category" data-id="${cat.id}">Delete</button>
+                        </div>
+                    `;
+                    adminCategories.appendChild(catItem);
+                });
+                
+                document.querySelectorAll('.delete-category').forEach(btn => {
+                    btn.addEventListener('click', () => deleteCategory(btn.dataset.id));
+                });
+            }
+            
+            document.querySelectorAll('.filter-category').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const category = link.dataset.category;
+                    const filteredJobs = jobs.filter(job => job.category === category && new Date(job.deadline) > new Date());
+                    document.getElementById('contentTitle').textContent = `Jobs in ${category}`;
+                    displayJobs(filteredJobs);
+                });
+            });
+        }
+
+        // Show job details modal
+        function showJobDetails(jobId) {
+            const job = jobs.find(j => j.id === jobId);
+            if (!job) return;
+            
+            document.getElementById('jobDetailsTitle').textContent = job.title;
+            const content = document.getElementById('jobDetailsContent');
+            content.innerHTML = `
+                <p><strong>Employer:</strong> ${job.employerName || 'Anonymous'}</p>
+                <p><strong>Location:</strong> ${job.location}</p>
+                <p><strong>Positions:</strong> ${job.positions}</p>
+                <p><strong>Deadline:</strong> ${formatDate(job.deadline)}</p>
+                <p><strong>Salary Range:</strong> ${job.salaryRange || 'Not disclosed'}</p>
+                <div><strong>Description:</strong><br>${job.description}</div>
+                ${job.image ? `<img src="${job.image}" alt="Job image" style="max-width: 100%; margin-top: 10px;">` : ''}
+                <div class="job-actions" style="margin-top: 15px;">
+                    ${new Date(job.deadline) > new Date() ? `<button class="btn btn-success apply-job" data-id="${job.id}">Apply</button>` : ''}
+                    ${isSuperAdmin ? `<button class="btn btn-danger delete-job" data-id="${job.id}">Delete Job</button>` : ''}
+                    ${currentUser && currentUser.id !== job.posterId ? `<button class="btn btn-warning report-job" data-id="${job.id}">Report</button>` : ''}
+                </div>
+            `;
+            
+            // Load comments
+            const comments = job.comments || [];
+            const commentsContainer = document.getElementById('jobComments');
+            commentsContainer.innerHTML = comments.length === 0 ? '<p>No comments yet.</p>' : '';
+            
+            comments.forEach(comment => {
+                const commentUser = users.find(u => u.id === comment.userId);
+                const commentElement = document.createElement('div');
+                commentElement.className = 'message received';
+                commentElement.innerHTML = `
+                    <strong>${commentUser?.name || 'Anonymous'}:</strong> ${comment.text}
+                    ${isSuperAdmin ? `<button class="btn btn-sm btn-danger delete-comment" data-jobid="${job.id}" data-commentid="${comment.id}">Delete</button>` : ''}
+                `;
+                commentsContainer.appendChild(commentElement);
+            });
+            
+            document.getElementById('commentJobId').value = job.id;
+            jobDetailsModal.style.display = 'flex';
+            
+            // Add event listeners
+            if (document.querySelector('.apply-job')) {
+                document.querySelector('.apply-job').addEventListener('click', () => {
+                    jobDetailsModal.style.display = 'none';
+                    showApplyModal(job.id);
+                });
+            }
+            
+            if (document.querySelector('.delete-job')) {
+                document.querySelector('.delete-job').addEventListener('click', () => {
+                    if (confirm('Are you sure you want to delete this job?')) {
+                        deleteJob(job.id);
+                        jobDetailsModal.style.display = 'none';
+                    }
+                });
+            }
+            
+            if (document.querySelector('.report-job')) {
+                document.querySelector('.report-job').addEventListener('click', () => {
+                    reportJob(job.id);
+                });
+            }
+            
+            document.querySelectorAll('.delete-comment').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    deleteComment(btn.dataset.jobid, btn.dataset.commentid);
+                });
+            });
+            
+            // Show/hide comment section based on job settings
+            document.getElementById('jobCommentsSection').style.display = job.allowComments ? 'block' : 'none';
+        }
+
+        // Show apply modal
+        function showApplyModal(jobId) {
+            if (!currentUser) {
+                alert('Please login to apply for jobs');
+                loginModal.style.display = 'flex';
+                return;
+            }
+            
+            const job = jobs.find(j => j.id === jobId);
+            if (!job || new Date(job.deadline) <= new Date()) {
+                alert('This job is no longer accepting applications');
+                return;
+            }
+            
+            document.getElementById('applyJobId').value = jobId;
+            document.getElementById('applicantName').value = currentUser.name;
+            document.getElementById('applicantEmail').value = currentUser.email;
+            document.getElementById('applicantPhone').value = currentUser.phone;
+            document.getElementById('applicantLocation').value = currentUser.location || '';
+            applyModal.style.display = 'flex';
+        }
+
+        // Show profile modal
+        function showProfileModal() {
+            if (!currentUser) return;
+            
+            const content = document.getElementById('profileContent');
+            content.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img src="${currentUser.photoUrl || 'https://via.placeholder.com/150'}" alt="Profile" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover;">
+                    <h3>${currentUser.name}</h3>
+                    ${currentUser.isSuperAdmin ? '<div class="admin-badge">Super Admin</div>' : ''}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <p>${currentUser.email}</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone</label>
+                    <p>${currentUser.phone}</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Profession</label>
+                    <p>${currentUser.profession || 'Not specified'}</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Job Title</label>
+                    <p>${currentUser.jobTitle || 'Not specified'}</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Workplace</label>
+                    <p>${currentUser.workplace || 'Not specified'}</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Location</label>
+                    <p>${currentUser.location || 'Not detected'}</p>
+                </div>
+                <button class="btn btn-primary" id="editProfileBtn">Edit Profile</button>
+            `;
+            
+            profileModal.style.display = 'flex';
+            
+            document.getElementById('editProfileBtn').addEventListener('click', showEditProfileForm);
+        }
+
+        // Show edit profile form
+        function showEditProfileForm() {
+            const content = document.getElementById('profileContent');
+            content.innerHTML = `
+                <form id="editProfileForm">
+                    <div class="form-group">
+                        <label for="editName" class="form-label">Full Name</label>
+                        <input type="text" id="editName" class="form-control" value="${currentUser.name}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEmail" class="form-label">Email</label>
+                        <input type="email" id="editEmail" class="form-control" value="${currentUser.email}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPhone" class="form-label">Phone Number</label>
+                        <input type="tel" id="editPhone" class="form-control" value="${currentUser.phone}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editProfession" class="form-label">Profession</label>
+                        <input type="text" id="editProfession" class="form-control" value="${currentUser.profession || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label for="editJobTitle" class="form-label">Job Title</label>
+                        <input type="text" id="editJobTitle" class="form-control" value="${currentUser.jobTitle || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label for="editWorkplace" class="form-label">Place of Work</label>
+                        <input type="text" id="editWorkplace" class="form-control" value="${currentUser.workplace || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label for="editPhoto" class="form-label">Profile Picture</label>
+                        <input type="file" id="editPhoto" class="form-control" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <button type="button" class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
+                    </div>
+                </form>
+            `;
+            
+            document.getElementById('editProfileForm').addEventListener('submit', handleEditProfile);
+            document.getElementById('cancelEditBtn').addEventListener('click', showProfileModal);
+        }
+
+        // Show application details
+        function showApplicationDetails(applicationId) {
+            const application = applications.find(app => app.id === applicationId);
+            if (!application || application.applicantId !== currentUser.id) return;
+            
+            const job = jobs.find(j => j.id === application.jobId);
+            if (!job) return;
+            
+            const content = document.getElementById('applicationDetailsContent');
+            content.innerHTML = `
+                <h4>Application for ${job.title}</h4>
+                <p><strong>Status:</strong> <span class="application-status status-${application.status || 'pending'}">${application.status ? application.status.charAt(0).toUpperCase() + application.status.slice(1) : 'Pending'}</span></p>
+                <p><strong>Submitted:</strong> ${formatDate(application.timestamp)}</p>
+                ${application.reviewed ? `<p><strong>Reviewed:</strong> ${formatDate(application.reviewedTimestamp)}</p>` : ''}
+                ${application.interviewDate ? `<p><strong>Interview:</strong> ${formatDate(application.interviewDate)} ${application.interviewLocation ? `at ${application.interviewLocation}` : 'online'}</p>` : ''}
+                <div class="form-group">
+                    <label class="form-label">Your Qualifications</label>
+                    <p>${application.qualifications}</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Experience</label>
+                    <p>${application.experience} years</p>
+                </div>
+                ${application.notes ? `
+                <div class="form-group">
+                    <label class="form-label">Employer Notes</label>
+                    <p>${application.notes}</p>
+                </div>
+                ` : ''}
+                ${application.cv ? `<a href="${application.cv}" class="btn btn-primary" target="_blank">View CV</a>` : ''}
+                ${application.photo ? `<img src="${application.photo}" alt="Applicant" style="max-width: 100px; margin-top: 10px;">` : ''}
+            `;
+            
+            applicationDetailsModal.style.display = 'flex';
+        }
+
+        // Start chat with another user
+        function startChat(peerId) {
+            const peerUser = users.find(u => u.id === peerId);
+            if (!peerUser || !peerUser.peerId) {
+                alert('User is not available for chat');
+                return;
+            }
+            
+            currentChatPeer = peerId;
+            document.getElementById('chatTitle').textContent = `Chat with ${peerUser.name}`;
+            document.getElementById('chatMessages').innerHTML = '';
+            
+            // Load previous messages
+            const previousMessages = messages.filter(m => 
+                (m.senderId === currentUser.id && m.receiverId === peerId) || 
+                (m.senderId === peerId && m.receiverId === currentUser.id)
+                .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            
+            previousMessages.forEach(msg => {
+                addMessageToChat(msg.senderId === currentUser.id, msg.text, msg.timestamp);
+            });
+            
+            chatContainer.style.display = 'flex';
+            document.getElementById('chatInput').focus();
+        }
+
+        // Send chat message
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message || !currentChatPeer) return;
+            
+            // Add to UI immediately
+            addMessageToChat(true, message);
+            input.value = '';
+            
+            // Create message object
+            const newMessage = {
+                id: generateId(),
+                senderId: currentUser.id,
+                receiverId: currentChatPeer,
+                text: message,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Add to database
+            addMessageToDB(newMessage);
+            
+            // Send via PeerJS if peer is online
+            const peerUser = users.find(u => u.id === currentChatPeer);
+            if (peerUser && peerUser.peerId) {
+                if (peerConnections[peerUser.peerId]) {
+                    peerConnections[peerUser.peerId].send({
+                        type: 'message',
+                        data: newMessage
+                    });
+                } else {
+                    // Establish new connection
+                    const conn = peer.connect(peerUser.peerId);
+                    conn.on('open', () => {
+                        conn.send({
+                            type: 'message',
+                            data: newMessage
+                        });
+                        peerConnections[peerUser.peerId] = conn;
+                    });
+                }
+            }
+        }
+
+        // Add message to chat UI
+        function addMessageToChat(isSender, text, timestamp) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${isSender ? 'sent' : 'received'}`;
+            
+            const timeStr = timestamp ? formatTime(timestamp) : 'Just now';
+            messageElement.innerHTML = `${text} <span class="message-time">${timeStr}</span>`;
+            
+            messagesContainer.appendChild(messageElement);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Ask about job opportunities
+        function askAboutJobOpportunities(peerId) {
+            const peerUser = users.find(u => u.id === peerId);
+            if (!peerUser || !peerUser.peerId) {
+                alert('User is not available');
+                return;
+            }
+            
+            const message = `Hi ${peerUser.name.split(' ')[0]}, I noticed you're in ${peerUser.profession}. Do you know of any job opportunities in this field?`;
+            
+            if (currentChatPeer !== peerId) {
+                startChat(peerId);
+            }
+            
+            // Small delay to allow chat to open
+            setTimeout(() => {
+                document.getElementById('chatInput').value = message;
+                document.getElementById('chatInput').focus();
+            }, 300);
+        }
+
+        // Handle incoming data from PeerJS
+        function handleIncomingData(conn, data) {
+            console.log('Received data:', data);
+            
+            switch (data.type) {
+                case 'message':
+                    addMessageToChat(false, data.data.text, data.data.timestamp);
+                    addMessageToDB(data.data);
+                    break;
+                    
+                case 'job':
+                    // Add job to local database if not exists
+                    if (!jobs.some(j => j.id === data.data.id)) {
+                        addJobToDB(data.data);
+                    }
+                    break;
+                    
+                case 'application':
+                    // Add application to local database if not exists
+                    if (!applications.some(a => a.id === data.data.id)) {
+                        addApplicationToDB(data.data);
+                        
+                        // Notify if this is our job
+                        const job = jobs.find(j => j.id === data.data.jobId);
+                        if (job && job.posterId === currentUser.id) {
+                            alert(`New application received for your job: ${job.title}`);
+                        }
+                    }
+                    break;
+                    
+                case 'blockchain':
+                    // Verify and merge blockchain
+                    mergeBlockchain(data.data);
+                    break;
+                    
+                case 'broadcast':
+                    // Show broadcast message
+                    showBroadcastMessage(data.data);
+                    break;
+                    
+                default:
+                    console.log('Unknown data type:', data.type);
+            }
+        }
+
+        // Show broadcast message
+        function showBroadcastMessage(message) {
+            alert(`${message.type.toUpperCase()}: ${message.text}`);
+        }
+
+        // Handle login
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            // In a real app, this would be hashed and verified properly
+            const user = users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                if (user.bannedUntil && new Date(user.bannedUntil) > new Date()) {
+                    alert(`Your account is banned until ${formatDate(user.bannedUntil)}. Reason: ${user.banReason || 'Not specified'}`);
+                    return;
+                }
+                
+                loginUser(user);
+                loginModal.style.display = 'none';
+            } else {
+                alert('Invalid email or password');
+            }
+        }
+
+        // Handle signup
+        function handleSignup(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const phone = document.getElementById('signupPhone').value;
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('signupConfirmPassword').value;
+            const profession = document.getElementById('signupProfession').value;
+            const jobTitle = document.getElementById('signupJobTitle').value;
+            const workplace = document.getElementById('signupWorkplace').value;
+            const photoFile = document.getElementById('signupPhoto').files[0];
+            
+            if (password !== confirmPassword) {
+                alert('Passwords do not match');
+                return;
+            }
+            
+            if (users.some(u => u.email === email)) {
+                alert('Email already registered');
+                return;
+            }
+            
+            if (users.some(u => u.phone === phone)) {
+                alert('Phone number already registered');
+                return;
+            }
+            
+            // Check for banned email or phone
+            const bannedUser = users.find(u => 
+                (u.email === email || u.phone === phone) && 
+                u.bannedUntil && new Date(u.bannedUntil) > new Date());
+            
+            if (bannedUser) {
+                alert(`This email or phone is banned until ${formatDate(bannedUser.bannedUntil)}. Reason: ${bannedUser.banReason || 'Not specified'}`);
+                return;
+            }
+            
+            const newUser = {
+                id: generateId(),
+                name,
+                email,
+                phone,
+                password, // In a real app, this would be hashed
+                profession,
+                jobTitle,
+                workplace,
+                location: currentUser?.location || '',
+                joinedAt: new Date().toISOString(),
+                isSuperAdmin: users.length === 0, // First user becomes super admin
+                peerId: peer?.id || null
+            };
+            
+            // Handle photo upload if provided
+            if (photoFile) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    newUser.photoUrl = e.target.result;
+                    completeSignup(newUser);
+                };
+                reader.readAsDataURL(photoFile);
+            } else {
+                completeSignup(newUser);
+            }
+        }
+
+        // Complete signup process
+        function completeSignup(user) {
+            addUserToDB(user);
+            loginUser(user);
+            signupModal.style.display = 'none';
+            
+            // Broadcast new user to network
+            broadcastData({
+                type: 'blockchain',
+                data: blockchain
+            });
+        }
+
+        // Login user
+        function loginUser(user) {
+            currentUser = user;
+            isSuperAdmin = user.isSuperAdmin;
+            
+            // Update UI
+            loginBtn.style.display = 'none';
+            signupBtn.style.display = 'none';
+            profileBtn.style.display = 'block';
+            logoutBtn.style.display = 'block';
+            
+            if (isSuperAdmin) {
+                document.getElementById('adminLink').style.display = 'block';
+            }
+            
+            // Update peer ID if not set
+            if (!user.peerId && peer?.id) {
+                user.peerId = peer.id;
+                updateUser(user);
+            }
+            
+            // Add to online users
+            if (!onlineUsers.some(u => u.id === user.id)) {
+                onlineUsers.push(user);
+                broadcastOnlineUsers();
+            }
+            
+            // Load user-specific data
+            displayUserApplications();
+            displayConversations();
+        }
+
+        // Logout user
+        function logout() {
+            // Remove from online users
+            onlineUsers = onlineUsers.filter(u => u.id !== currentUser.id);
+            broadcastOnlineUsers();
+            
+            currentUser = null;
+            isSuperAdmin = false;
+            
+            // Update UI
+            loginBtn.style.display = 'block';
+            signupBtn.style.display = 'block';
+            profileBtn.style.display = 'none';
+            logoutBtn.style.display = 'none';
+            document.getElementById('adminLink').style.display = 'none';
+            
+            // Clear chat
+            chatContainer.style.display = 'none';
+            currentChatPeer = null;
+            
+            // Show home content
+            showContent('home');
+        }
+
+        // Handle post job
+        function handlePostJob(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('jobTitle').value;
+            const category = document.getElementById('jobCategory').value;
+            const positions = document.getElementById('positions').value;
+            const deadline = document.getElementById('deadline').value;
+            const description = document.getElementById('jobDescription').value;
+            const location = document.getElementById('jobLocation').value;
+            const salaryRange = document.getElementById('salaryRange').value;
+            const allowComments = document.getElementById('allowComments').checked;
+            const allowPrivateMessages = document.getElementById('allowPrivateMessages').checked;
+            const imageFile = document.getElementById('jobImage').files[0];
+            
+            const newJob = {
+                id: generateId(),
+                title,
+                category,
+                positions,
+                deadline: new Date(deadline).toISOString(),
+                description,
+                location,
+                salaryRange,
+                allowComments,
+                allowPrivateMessages,
+                posterId: currentUser.id,
+                employerName: currentUser.name,
+                createdAt: new Date().toISOString(),
+                comments: []
+            };
+            
+            // Handle image upload if provided
+            if (imageFile) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    newJob.image = e.target.result;
+                    completeJobPosting(newJob);
+                };
+                reader.readAsDataURL(imageFile);
+            } else {
+                completeJobPosting(newJob);
+            }
+        }
+
+        // Complete job posting process
+        function completeJobPosting(job) {
+            addJobToDB(job);
+            
+            // Broadcast job to network
+            broadcastData({
+                type: 'job',
+                data: job
+            });
+            
+            // Reset form
+            document.getElementById('postJobForm').reset();
+            alert('Job posted successfully!');
+            showContent('home');
+        }
+
+        // Handle job application
+        function handleApplication(e) {
+            e.preventDefault();
+            
+            const jobId = document.getElementById('applyJobId').value;
+            const name = document.getElementById('applicantName').value;
+            const email = document.getElementById('applicantEmail').value;
+            const phone = document.getElementById('applicantPhone').value;
+            const age = document.getElementById('applicantAge').value;
+            const gender = document.getElementById('applicantGender').value;
+            const location = document.getElementById('applicantLocation').value;
+            const experience = document.getElementById('applicantExperience').value;
+            const qualifications = document.getElementById('applicantQualifications').value;
+            const photoFile = document.getElementById('applicantPhoto').files[0];
+            const cvFile = document.getElementById('applicantCV').files[0];
+            
+            const newApplication = {
+                id: generateId(),
+                jobId,
+                applicantId: currentUser.id,
+                name,
+                email,
+                phone,
+                age,
+                gender,
+                location,
+                experience,
+                qualifications,
+                timestamp: new Date().toISOString(),
+                status: 'pending'
+            };
+            
+            // Handle files
+            const filePromises = [];
+            
+            if (photoFile) {
+                filePromises.push(new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        newApplication.photo = e.target.result;
+                        resolve();
+                    };
+                    reader.readAsDataURL(photoFile);
+                }));
+            }
+            
+            if (cvFile) {
+                filePromises.push(new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        newApplication.cv = e.target.result;
+                        resolve();
+                    };
+                    reader.readAsDataURL(cvFile);
+                }));
+            }
+            
+            Promise.all(filePromises).then(() => {
+                completeApplication(newApplication);
+            });
+        }
+
+        // Complete application process
+        function completeApplication(application) {
+            addApplicationToDB(application);
+            
+            // Broadcast application to network
+            broadcastData({
+                type: 'application',
+                data: application
+            });
+            
+            // Notify job poster if online
+            const job = jobs.find(j => j.id === application.jobId);
+            if (job) {
+                const poster = users.find(u => u.id === job.posterId);
+                if (poster && poster.peerId && peerConnections[poster.peerId]) {
+                    peerConnections[poster.peerId].send({
+                        type: 'application',
+                        data: application
+                    });
+                }
+            }
+            
+            // Reset form and close modal
+            document.getElementById('applyForm').reset();
+            applyModal.style.display = 'none';
+            alert('Application submitted successfully!');
+        }
+
+        // Handle add comment
+        function handleAddComment(e) {
+            e.preventDefault();
+            
+            const jobId = document.getElementById('commentJobId').value;
+            const text = document.getElementById('commentText').value;
+            
+            const job = jobs.find(j => j.id === jobId);
+            if (!job || !job.allowComments) return;
+            
+            const newComment = {
+                id: generateId(),
+                jobId,
+                userId: currentUser.id,
+                text,
+                timestamp: new Date().toISOString()
+            };
+            
+            if (!job.comments) job.comments = [];
+            job.comments.push(newComment);
+            
+            updateJobInDB(job);
+            document.getElementById('commentText').value = '';
+            
+            // Update UI
+            const commentsContainer = document.getElementById('jobComments');
+            if (commentsContainer.innerHTML === '<p>No comments yet.</p>') {
+                commentsContainer.innerHTML = '';
+            }
+            
+            const commentElement = document.createElement('div');
+            commentElement.className = 'message received';
+            commentElement.innerHTML = `
+                <strong>${currentUser.name}:</strong> ${text}
+                ${isSuperAdmin ? `<button class="btn btn-sm btn-danger delete-comment" data-jobid="${job.id}" data-commentid="${newComment.id}">Delete</button>` : ''}
+            `;
+            commentsContainer.appendChild(commentElement);
+            
+            // Add event listener to delete button if admin
+            if (isSuperAdmin) {
+                document.querySelector(`.delete-comment[data-commentid="${newComment.id}"]`).addEventListener('click', () => {
+                    deleteComment(job.id, newComment.id);
+                });
+            }
+        }
+
+        // Handle broadcast message (admin)
+        function handleBroadcast(e) {
+            e.preventDefault();
+            
+            const messageType = document.getElementById('messageType').value;
+            const messageText = document.getElementById('broadcastMessage').value;
+            
+            const broadcastMessage = {
+                type: messageType,
+                text: messageText,
+                timestamp: new Date().toISOString(),
+                senderId: currentUser.id
+            };
+            
+            // Add to blockchain
+            const newBlock = createBlock(blockchain[blockchain.length - 1], {
+                type: 'broadcast',
+                data: broadcastMessage
+            });
+            
+            addBlockToDB(newBlock);
+            broadcastData({
+                type: 'broadcast',
+                data: broadcastMessage
+            });
+            
+            // Reset form
+            document.getElementById('broadcastMessage').value = '';
+            alert('Message broadcasted to all users!');
+        }
+
+        // Handle add category (admin)
+        function handleAddCategory(e) {
+            e.preventDefault();
+            
+            const categoryName = document.getElementById('newCategory').value.trim();
+            if (!categoryName) return;
+            
+            if (categories.some(c => c.name.toLowerCase() === categoryName.toLowerCase())) {
+                alert('Category already exists');
+                return;
+            }
+            
+            const newCategory = {
+                id: generateId(),
+                name: categoryName,
+                createdAt: new Date().toISOString()
+            };
+            
+            addCategoryToDB(newCategory);
+            document.getElementById('newCategory').value = '';
+        }
+
+        // Handle system settings (admin)
+        function handleSystemSettings(e) {
+            e.preventDefault();
+            
+            const appTitle = document.getElementById('appTitle').value;
+            const systemName = document.getElementById('systemName').value;
+            
+            // Save settings
+            updateSetting('appTitle', appTitle);
+            updateSetting('systemName', systemName);
+            
+            // Update UI
+            document.querySelector('.logo').textContent = appTitle;
+            alert('System settings updated!');
+        }
+
+        // Handle job search
+        function handleJobSearch(e) {
+            const query = e.target.value.toLowerCase();
+            if (!query) {
+                displayJobs(jobs);
+                return;
+            }
+            
+            const filteredJobs = jobs.filter(job => 
+                job.title.toLowerCase().includes(query) ||
+                job.description.toLowerCase().includes(query) ||
+                job.location.toLowerCase().includes(query) ||
+                (job.employerName && job.employerName.toLowerCase().includes(query))
+                .filter(job => new Date(job.deadline) > new Date());
+            
+            displayJobs(filteredJobs);
+        }
+
+        // Handle edit profile
+        function handleEditProfile(e) {
+            e.preventDefault();
+            
+            currentUser.name = document.getElementById('editName').value;
+            currentUser.email = document.getElementById('editEmail').value;
+            currentUser.phone = document.getElementById('editPhone').value;
+            currentUser.profession = document.getElementById('editProfession').value;
+            currentUser.jobTitle = document.getElementById('editJobTitle').value;
+            currentUser.workplace = document.getElementById('editWorkplace').value;
+            
+            const photoFile = document.getElementById('editPhoto').files[0];
+            if (photoFile) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    currentUser.photoUrl = e.target.result;
+                    completeProfileUpdate();
+                };
+                reader.readAsDataURL(photoFile);
+            } else {
+                completeProfileUpdate();
+            }
+        }
+
+        // Complete profile update
+        function completeProfileUpdate() {
+            updateUser(currentUser);
+            profileModal.style.display = 'none';
+            showProfileModal();
+            alert('Profile updated successfully!');
+        }
+
+        // Delete job (admin)
+        function deleteJob(jobId) {
+            const jobIndex = jobs.findIndex(j => j.id === jobId);
+            if (jobIndex === -1) return;
+            
+            // Create a delete transaction in the blockchain
+            const newBlock = createBlock(blockchain[blockchain.length - 1], {
+                type: 'delete_job',
+                data: { jobId }
+            });
+            
+            addBlockToDB(newBlock);
+            
+            // Remove from local database
+            const transaction = db.transaction(['jobs'], 'readwrite');
+            const store = transaction.objectStore('jobs');
+            store.delete(jobId);
+            
+            transaction.oncomplete = () => {
+                jobs = jobs.filter(j => j.id !== jobId);
+                displayJobs(jobs);
+                broadcastData({
+                    type: 'blockchain',
+                    data: blockchain
+                });
+            };
+        }
+
+        // Delete comment (admin)
+        function deleteComment(jobId, commentId) {
+            const job = jobs.find(j => j.id === jobId);
+            if (!job || !job.comments) return;
+            
+            job.comments = job.comments.filter(c => c.id !== commentId);
+            updateJobInDB(job);
+            
+            // Remove from UI
+            document.querySelector(`.delete-comment[data-commentid="${commentId}"]`)?.parentElement?.remove();
+            
+            if (job.comments.length === 0) {
+                document.getElementById('jobComments').innerHTML = '<p>No comments yet.</p>';
+            }
+        }
+
+        // Delete category (admin)
+        function deleteCategory(categoryId) {
+            if (!confirm('Are you sure you want to delete this category? Jobs in this category will not be deleted.')) return;
+            
+            const categoryIndex = categories.findIndex(c => c.id === categoryId);
+            if (categoryIndex === -1) return;
+            
+            // Create a delete transaction in the blockchain
+            const newBlock = createBlock(blockchain[blockchain.length - 1], {
+                type: 'delete_category',
+                data: { categoryId }
+            });
+            
+            addBlockToDB(newBlock);
+            
+            // Remove from local database
+            const transaction = db.transaction(['categories'], 'readwrite');
+            const store = transaction.objectStore('categories');
+            store.delete(categoryId);
+            
+            transaction.oncomplete = () => {
+                categories = categories.filter(c => c.id !== categoryId);
+                updateCategoryLists();
+                broadcastData({
+                    type: 'blockchain',
+                    data: blockchain
+                });
+            };
+        }
+
+        // Report job
+        function reportJob(jobId) {
+            if (!confirm('Report this job as inappropriate or fraudulent?')) return;
+            
+            const job = jobs.find(j => j.id === jobId);
+            if (!job) return;
+            
+            // Create report transaction in the blockchain
+            const newBlock = createBlock(blockchain[blockchain.length - 1], {
+                type: 'report_job',
+                data: {
+                    jobId,
+                    reporterId: currentUser.id,
+                    timestamp: new Date().toISOString()
+                }
+            });
+            
+            addBlockToDB(newBlock);
+            alert('Job reported. Our team will review it shortly.');
+            
+            // Notify super admin if online
+            const superAdmin = users.find(u => u.isSuperAdmin);
+            if (superAdmin && superAdmin.peerId && peerConnections[superAdmin.peerId]) {
+                peerConnections[superAdmin.peerId].send({
+                    type: 'report',
+                    data: {
+                        jobId,
+                        reporterId: currentUser.id
+                    }
+                });
+            }
+        }
+
+        // Ban user (admin)
+        function banUser(userId, durationMonths = 12, reason = 'Violation of terms') {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
+            const banDate = new Date();
+            banDate.setMonth(banDate.getMonth() + durationMonths);
+            
+            user.bannedUntil = banDate.toISOString();
+            user.banReason = reason;
+            
+            updateUser(user);
+            
+            // Create ban transaction in the blockchain
+            const newBlock = createBlock(blockchain[blockchain.length - 1], {
+                type: 'ban_user',
+                data: {
+                    userId,
+                    bannedUntil: user.bannedUntil,
+                    reason
+                }
+            });
+            
+            addBlockToDB(newBlock);
+            broadcastData({
+                type: 'blockchain',
+                data: blockchain
+            });
+            
+            // If banned user is current user, log them out
+            if (currentUser && currentUser.id === userId) {
+                logout();
+            }
+        }
+
+        // Unban user (admin)
+        function unbanUser(userId) {
+            const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
+            user.bannedUntil = null;
+            user.banReason = null;
+            
+            updateUser(user);
+            
+            // Create unban transaction in the blockchain
+            const newBlock = createBlock(blockchain[blockchain.length - 1], {
+                type: 'unban_user',
+                data: { userId }
+            });
+            
+            addBlockToDB(newBlock);
+            broadcastData({
+                type: 'blockchain',
+                data: blockchain
+            });
+        }
+
+        // Create a new block
+        function createBlock(previousBlock, data) {
+            const index = previousBlock ? previousBlock.index + 1 : 0;
+            const previousHash = previousBlock ? previousBlock.hash : '0';
+            const timestamp = new Date().toISOString();
+            const hash = calculateHash(index, previousHash, timestamp, data);
+            
+            return {
+                index,
+                previousHash,
+                timestamp,
+                data,
+                hash
+            };
+        }
+
+        // Calculate block hash
+        function calculateHash(index, previousHash, timestamp, data) {
+            return CryptoJS.SHA256(index + previousHash + timestamp + JSON.stringify(data)).toString();
+        }
+
+        // Add block to database
+        function addBlockToDB(block) {
+            blockchain.push(block);
+            
+            const transaction = db.transaction(['blockchain'], 'readwrite');
+            const store = transaction.objectStore('blockchain');
+            store.put(block);
+            
+            transaction.oncomplete = () => {
+                console.log('Block added to blockchain:', block.index);
+            };
+        }
+
+        // Verify blockchain integrity
+        function verifyBlockchain() {
+            for (let i = 1; i < blockchain.length; i++) {
+                const currentBlock = blockchain[i];
+                const previousBlock = blockchain[i - 1];
+                
+                // Check if current block's previousHash matches previous block's hash
+                if (currentBlock.previousHash !== previousBlock.hash) {
+                    return false;
+                }
+                
+                // Check if current block's hash is valid
+                const calculatedHash = calculateHash(
+                    currentBlock.index,
+                    currentBlock.previousHash,
+                    currentBlock.timestamp,
+                    currentBlock.data
+                );
+                
+                if (currentBlock.hash !== calculatedHash) {
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+
+        // Merge received blockchain with local one
+        function mergeBlockchain(receivedBlockchain) {
+            if (receivedBlockchain.length <= blockchain.length) return;
+            
+            // Verify received blockchain
+            for (let i = 1; i < receivedBlockchain.length; i++) {
+                const currentBlock = receivedBlockchain[i];
+                const previousBlock = receivedBlockchain[i - 1];
+                
+                if (currentBlock.previousHash !== previousBlock.hash) {
+                    console.error('Received blockchain verification failed at block', i);
+                    return;
+                }
+                
+                const calculatedHash = calculateHash(
+                    currentBlock.index,
+                    currentBlock.previousHash,
+                    currentBlock.timestamp,
+                    currentBlock.data
+                );
+                
+                if (currentBlock.hash !== calculatedHash) {
+                    console.error('Received blockchain hash mismatch at block', i);
+                    return;
+                }
+            }
+            
+            // If verified, replace local blockchain
+            blockchain = receivedBlockchain;
+            
+            // Update local database
+            const transaction = db.transaction(['blockchain'], 'readwrite');
+            const store = transaction.objectStore('blockchain');
+            store.clear();
+            
+            blockchain.forEach(block => {
+                store.put(block);
+            });
+            
+            transaction.oncomplete = () => {
+                console.log('Blockchain updated from network');
+                loadAllData(); // Reload all data from the new blockchain
+            };
+        }
+
+        // Add job to database
+        function addJobToDB(job) {
+            jobs.push(job);
+            
+            const transaction = db.transaction(['jobs'], 'readwrite');
+            const store = transaction.objectStore('jobs');
+            store.put(job);
+            
+            transaction.oncomplete = () => {
+                console.log('Job added:', job.id);
+                displayJobs(jobs);
+                
+                // Create job transaction in the blockchain
+                const newBlock = createBlock(blockchain[blockchain.length - 1], {
+                    type: 'add_job',
+                    data: job
+                });
+                
+                addBlockToDB(newBlock);
+            };
+        }
+
+        // Update job in database
+        function updateJobInDB(job) {
+            const transaction = db.transaction(['jobs'], 'readwrite');
+            const store = transaction.objectStore('jobs');
+            store.put(job);
+            
+            transaction.oncomplete = () => {
+                console.log('Job updated:', job.id);
+                
+                // Create update transaction in the blockchain
+                const newBlock = createBlock(blockchain[blockchain.length - 1], {
+                    type: 'update_job',
+                    data: job
+                });
+                
+                addBlockToDB(newBlock);
+            };
+        }
+
+        // Add user to database
+        function addUserToDB(user) {
+            users.push(user);
+            
+            const transaction = db.transaction(['users'], 'readwrite');
+            const store = transaction.objectStore('users');
+            store.put(user);
+            
+            transaction.oncomplete = () => {
+                console.log('User added:', user.id);
+                
+                // Create user transaction in the blockchain
+                const newBlock = createBlock(blockchain[blockchain.length - 1], {
+                    type: 'add_user',
+                    data: user
+                });
+                
+                addBlockToDB(newBlock);
+            };
+        }
+
+        // Update user in database
+        function updateUser(user) {
+            const transaction = db.transaction(['users'], 'readwrite');
+            const store = transaction.objectStore('users');
+            store.put(user);
+            
+            transaction.oncomplete = () => {
+                console.log('User updated:', user.id);
+                
+                // Create update transaction in the blockchain
+                const newBlock = createBlock(blockchain[blockchain.length - 1], {
+                    type: 'update_user',
+                    data: user
+                });
+                
+                addBlockToDB(newBlock);
+            };
+        }
+
+        // Add category to database
+        function addCategoryToDB(category) {
+            categories.push(category);
+            
+            const transaction = db.transaction(['categories'], 'readwrite');
+            const store = transaction.objectStore('categories');
+            store.put(category);
+            
+            transaction.oncomplete = () => {
+                console.log('Category added:', category.id);
+                updateCategoryLists();
+                
+                // Create category transaction in the blockchain
+                const newBlock = createBlock(blockchain[blockchain.length - 1], {
+                    type: 'add_category',
+                    data: category
+                });
+                
+                addBlockToDB(newBlock);
+            };
+        }
+
+        // Add application to database
+        function addApplicationToDB(application) {
+            applications.push(application);
+            
+            const transaction = db.transaction(['applications'], 'readwrite');
+            const store = transaction.objectStore('applications');
+            store.put(application);
+            
+            transaction.oncomplete = () => {
+                console.log('Application added:', application.id);
+                if (currentUser) {
+                    displayUserApplications();
+                }
+                
+                // Create application transaction in the blockchain
+                const newBlock = createBlock(blockchain[blockchain.length - 1], {
+                    type: 'add_application',
+                    data: application
+                });
+                
+                addBlockToDB(newBlock);
+            };
+        }
+
+        // Update application in database
+        function updateApplicationInDB(application) {
+            const transaction = db.transaction(['applications'], 'readwrite');
+            const store = transaction.objectStore('applications');
+            store.put(application);
+            
+            transaction.oncomplete = () => {
+                console.log('Application updated:', application.id);
+                if (currentUser) {
+                    displayUserApplications();
+                }
+                
+                // Create update transaction in the blockchain
+                const newBlock = createBlock(blockchain[blockchain.length - 1], {
+                    type: 'update_application',
+                    data: application
+                });
+                
+                addBlockToDB(newBlock);
+            };
+        }
+
+        // Add message to database
+        function addMessageToDB(message) {
+            messages.push(message);
+            
+            const transaction = db.transaction(['messages'], 'readwrite');
+            const store = transaction.objectStore('messages');
+            store.put(message);
+            
+            transaction.oncomplete = () => {
+                console.log('Message added:', message.id);
+                if (currentUser) {
+                    displayConversations();
+                }
+                
+                // Create message transaction in the blockchain
+                const newBlock = createBlock(blockchain[blockchain.length - 1], {
+                    type: 'add_message',
+                    data: message
+                });
+                
+                addBlockToDB(newBlock);
+            };
+        }
+
+        // Update setting in database
+        function updateSetting(key, value) {
+            const transaction = db.transaction(['settings'], 'readwrite');
+            const store = transaction.objectStore('settings');
+            store.put({ key, value });
+            
+            transaction.oncomplete = () => {
+                console.log('Setting updated:', key);
+                
+                // Create setting transaction in the blockchain
+                const newBlock = createBlock(blockchain[blockchain.length - 1], {
+                    type: 'update_setting',
+                    data: { key, value }
+                });
+                
+                addBlockToDB(newBlock);
+            };
+        }
+
+        // Broadcast data to peers
+        function broadcastData(data) {
+            Object.values(peerConnections).forEach(conn => {
+                conn.send(data);
+            });
+            
+            // Also share via WebTorrent for offline peers
+            shareViaWebTorrent(data);
+        }
+
+        // Share data via WebTorrent
+        function shareViaWebTorrent(data) {
+            const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+            torrentClient.seed(blob, (torrent) => {
+                console.log('Seeding data via WebTorrent:', torrent.magnetURI);
+                // Torrent will be available for others to download
+            });
+        }
+
+        // Broadcast online users list
+        function broadcastOnlineUsers() {
+            broadcastData({
+                type: 'online_users',
+                data: onlineUsers
+            });
+        }
+
+        // Detect user location
+        function detectLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const location = {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude,
+                            timestamp: new Date().toISOString()
+                        };
+                        
+                        if (currentUser) {
+                            currentUser.location = `${location.latitude}, ${location.longitude}`;
+                            currentUser.locationData = location;
+                            updateUser(currentUser);
+                            
+                            // Calculate distances to other online users
+                            onlineUsers.forEach(user => {
+                                if (user.locationData && user.id !== currentUser.id) {
+                                    user.distance = calculateDistance(
+                                        location.latitude,
+                                        location.longitude,
+                                        user.locationData.latitude,
+                                        user.locationData.longitude
+                                    );
+                                }
+                            });
+                            
+                            updateOnlineUsersList();
+                        }
+                    },
+                    (error) => {
+                        console.error('Geolocation error:', error);
+                    },
+                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                );
+            }
+        }
+
+        // Calculate distance between two coordinates in km
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth radius in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        // Format date for display
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleString();
+        }
+
+        // Format time for display
+        function formatTime(dateString) {
+            return new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Generate unique ID
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        // Check auth state on page load
+        function checkAuthState() {
+            // In a real app, this would check for stored session/token
+            // For this demo, we'll just show the login buttons
+            loginBtn.style.display = 'block';
+            signupBtn.style.display = 'block';
+            profileBtn.style.display = 'none';
+            logoutBtn.style.display = 'none';
+        }
+
+        // Toggle mute in interview
+        function toggleMute() {
+            if (!localStream) return;
+            
+            const audioTracks = localStream.getAudioTracks();
+            audioTracks.forEach(track => {
+                track.enabled = !track.enabled;
+                muteBtn.textContent = track.enabled ? '🔇' : '🔊';
+            });
+        }
+
+        // Toggle video in interview
+        function toggleVideo() {
+            if (!localStream) return;
+            
+            const videoTracks = localStream.getVideoTracks();
+            videoTracks.forEach(track => {
+                track.enabled = !track.enabled;
+                videoBtn.textContent = track.enabled ? '📷' : '📵';
+            });
+        }
+
+        // End interview
+        function endInterview() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            
+            if (currentInterviewData) {
+                // Update application status
+                const application = applications.find(app => app.id === currentInterviewData.applicationId);
+                if (application) {
+                    application.interviewCompleted = true;
+                    updateApplicationInDB(application);
+                }
+                
+                currentInterviewData = null;
+            }
+            
+            interviewRoom.style.display = 'none';
+        }
+
+        // Start interview (called when invited)
+        function startInterview(interviewData) {
+            currentInterviewData = interviewData;
+            
+            // Get user media
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                .then(stream => {
+                    localStream = stream;
+                    localVideo.srcObject = stream;
+                    
+                    // Connect to interviewer
+                    const interviewer = users.find(u => u.id === interviewData.interviewerId);
+                    if (interviewer && interviewer.peerId) {
+                        const conn = peer.connect(interviewer.peerId);
+                        conn.on('open', () => {
+                            conn.send({
+                                type: 'interview_started',
+                                data: {
+                                    applicationId: interviewData.applicationId,
+                                    intervieweeId: currentUser.id
+                                }
+                            });
+                            
+                            // Create peer connection for video
+                            const pc = new SimplePeer({
+                                initiator: true,
+                                stream: stream
+                            });
+                            
+                            pc.on('signal', data => {
+                                conn.send({
+                                    type: 'interview_signal',
+                                    data: data
+                                });
+                            });
+                            
+                            pc.on('stream', remoteStream => {
+                                remoteVideo.srcObject = remoteStream;
+                            });
+                            
+                            conn.on('data', data => {
+                                if (data.type === 'interview_signal') {
+                                    pc.signal(data.data);
+                                }
+                            });
+                            
+                            peerConnections[interviewer.peerId] = conn;
+                        });
+                    }
+                    
+                    interviewRoom.style.display = 'flex';
+                })
+                .catch(err => {
+                    console.error('Error accessing media devices:', err);
+                    alert('Could not access camera/microphone. Please check permissions.');
+                });
+        }
+
+        // Handle incoming interview request (for interviewers)
+        function handleIncomingInterview(applicationId, intervieweeId) {
+            const application = applications.find(app => app.id === applicationId);
+            if (!application || application.jobId !== currentUser.id) return;
+            
+            const interviewee = users.find(u => u.id === intervieweeId);
+            if (!interviewee) return;
+            
+            if (confirm(`Start video interview with ${interviewee.name} for ${application.name}?`)) {
+                // Get user media
+                navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                    .then(stream => {
+                        localStream = stream;
+                        localVideo.srcObject = stream;
+                        
+                        // Connect to interviewee
+                        if (interviewee.peerId) {
+                            const conn = peer.connect(interviewee.peerId);
+                            conn.on('open', () => {
+                                const pc = new SimplePeer({
+                                    initiator: false,
+                                    stream: stream
+                                });
+                                
+                                pc.on('signal', data => {
+                                    conn.send({
+                                        type: 'interview_signal',
+                                        data: data
+                                    });
+                                });
+                                
+                                pc.on('stream', remoteStream => {
+                                    remoteVideo.srcObject = remoteStream;
+                                });
+                                
+                                conn.on('data', data => {
+                                    if (data.type === 'interview_signal') {
+                                        pc.signal(data.data);
+                                    }
+                                });
+                                
+                                peerConnections[interviewee.peerId] = conn;
+                            });
+                        }
+                        
+                        interviewRoom.style.display = 'flex';
+                        currentInterviewData = {
+                            applicationId,
+                            intervieweeId
+                        };
+                    })
+                    .catch(err => {
+                        console.error('Error accessing media devices:', err);
+                        alert('Could not access camera/microphone. Please check permissions.');
+                    });
+            }
+        }
+    </script>
+</body>
+</html>
